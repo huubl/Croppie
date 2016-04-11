@@ -869,6 +869,38 @@
         return canvas.toDataURL(data.format, data.quality);
     }
 
+    function _getCanvasElementResult(img, data) {
+        var points = data.points,
+            left = points[0],
+            top = points[1],
+            width = (points[2] - points[0]),
+            height = (points[3] - points[1]),
+            circle = data.circle,
+            canvas = document.createElement('canvas'),
+            ctx = canvas.getContext('2d'),
+            outWidth = width,
+            outHeight = height;
+
+        if (data.outputWidth && data.outputHeight) {
+            outWidth = data.outputWidth;
+            outHeight = data.outputHeight;
+        }
+
+        canvas.width = outWidth;
+        canvas.height = outHeight;
+
+        ctx.drawImage(img, left, top, width, height, 0, 0, outWidth, outHeight);
+        if (circle) {
+            ctx.fillStyle = '#fff';
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.arc(outWidth / 2, outHeight / 2, outWidth / 2, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.fill();
+        }
+        return canvas;
+    }
+
     function _bind(options, cb) {
         var self = this,
             url,
@@ -989,6 +1021,9 @@
         prom = new Promise(function (resolve, reject) {
             if (type === 'canvas') {
                 resolve(_getCanvasResult.call(self, self.elements.preview, data));
+            }
+            else if (type === 'canvas_element') {
+                resolve(_getCanvasElementResult.call(self, self.elements.preview, data));
             }
             else {
                 resolve(_getHtmlResult.call(self, data));
